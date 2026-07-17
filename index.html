@@ -780,6 +780,33 @@
       color: var(--text-muted);
       margin-bottom: 14px;
     }
+    .ss-field-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--text-muted);
+      margin: 14px 0 6px;
+      text-transform: uppercase;
+    }
+    .ss-note-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      border: 1.5px solid #e4e9f0;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #f5f7fa;
+      color: var(--text-dark);
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .ss-note-input:focus {
+      outline: none;
+      border-color: #00b4db;
+      background: #fff;
+    }
     .ss-file-input {
       width: 100%;
       padding: 10px;
@@ -787,6 +814,11 @@
       border-radius: 14px;
       font-size: 0.85rem;
       background: #f5f7fa;
+      box-sizing: border-box;
+    }
+    .ss-modal-actions .btn-task:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     .ss-preview-box {
       margin-top: 12px;
@@ -950,12 +982,13 @@
   </div>
 
   <!-- FORCE CHANNEL JOIN GATE: shown after sign-in if admin has enabled "Force Channel Join" -->
+  <!-- Channel buttons are injected dynamically (see renderChannelGateButtons) based on adminConfig.forceJoinChannels -->
   <div class="ss-modal-overlay" id="channelGateModalOverlay">
     <div class="ss-modal-box" style="text-align:center;">
       <i class="fa-brands fa-telegram" style="font-size:2.4rem; color:#0088cc; margin-bottom:10px;"></i>
       <h4 style="margin-bottom:8px;">চ্যানেলে জয়েন করুন</h4>
-      <p style="font-size:0.9rem; color:#444; margin-bottom:18px;">এই অ্যাপ ব্যবহার করতে হলে আগে আমাদের অফিসিয়াল চ্যানেলে জয়েন করতে হবে।</p>
-      <button class="btn-primary" style="background:#0088cc; margin-bottom:10px;" onclick="openChannelGateLink()"><i class="fa-brands fa-telegram"></i> চ্যানেলে জয়েন করুন</button>
+      <p style="font-size:0.9rem; color:#444; margin-bottom:18px;">এই অ্যাপ ব্যবহার করতে হলে আগে আমাদের অফিসিয়াল চ্যানেল(গুলো)-এ জয়েন করতে হবে।</p>
+      <div id="channelGateList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;"></div>
       <button class="btn-primary" onclick="confirmChannelJoined()">✅ জয়েন করেছি, চালিয়ে যান</button>
     </div>
   </div>
@@ -1004,18 +1037,30 @@
         </div>
         <div id="dailyAdsSection">
           <h3 class="section-title"><i class="fa-solid fa-play-circle" style="color:#f44336;"></i> Daily Ads Income</h3>
-          <div style="display: flex; gap: 10px;" id="adSlotsRow">
-            <div class="card" id="adSlot1Card" style="flex:1; text-align:center; padding:15px; cursor:pointer;" onclick="watchAdSlot(1)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="adSlotsRow">
+            <div class="card" id="adSlot1Card" style="text-align:center; padding:15px; cursor:pointer;" onclick="watchAdSlot(1)">
               <i class="fa-solid fa-play" style="font-size:2rem; color:#ccc;"></i>
               <p style="font-weight:600;">Ad Slot 1</p><p style="font-size:0.75rem;" id="adSlot1Count">25/25 Watched</p>
               <p style="font-size:0.7rem; color:#4caf50;" id="adSlot1RewardLabel"></p>
               <p style="font-size:0.7rem; color:#e53935; display:none; font-weight:600; margin-top:4px;" id="adSlot1Timer"></p>
             </div>
-            <div class="card" id="adSlot2Card" style="flex:1; text-align:center; padding:15px; cursor:pointer;" onclick="watchAdSlot(2)">
+            <div class="card" id="adSlot2Card" style="text-align:center; padding:15px; cursor:pointer;" onclick="watchAdSlot(2)">
               <i class="fa-solid fa-play" style="font-size:2rem; color:#ccc;"></i>
               <p style="font-weight:600;">Ad Slot 2</p><p style="font-size:0.75rem;" id="adSlot2Count">25/25 Watched</p>
               <p style="font-size:0.7rem; color:#4caf50;" id="adSlot2RewardLabel"></p>
               <p style="font-size:0.7rem; color:#e53935; display:none; font-weight:600; margin-top:4px;" id="adSlot2Timer"></p>
+            </div>
+            <div class="card" id="adSlot3Card" style="text-align:center; padding:15px; cursor:pointer;" onclick="watchAdSlot(3)">
+              <i class="fa-solid fa-play" style="font-size:2rem; color:#ccc;"></i>
+              <p style="font-weight:600;">Ad Slot 3</p><p style="font-size:0.75rem;" id="adSlot3Count">25/25 Watched</p>
+              <p style="font-size:0.7rem; color:#4caf50;" id="adSlot3RewardLabel"></p>
+              <p style="font-size:0.7rem; color:#e53935; display:none; font-weight:600; margin-top:4px;" id="adSlot3Timer"></p>
+            </div>
+            <div class="card" id="adSlot4Card" style="text-align:center; padding:15px; cursor:pointer;" onclick="watchAdSlot(4)">
+              <i class="fa-solid fa-play" style="font-size:2rem; color:#ccc;"></i>
+              <p style="font-weight:600;">Ad Slot 4</p><p style="font-size:0.75rem;" id="adSlot4Count">25/25 Watched</p>
+              <p style="font-size:0.7rem; color:#4caf50;" id="adSlot4RewardLabel"></p>
+              <p style="font-size:0.7rem; color:#e53935; display:none; font-weight:600; margin-top:4px;" id="adSlot4Timer"></p>
             </div>
           </div>
         </div>
@@ -1138,6 +1183,9 @@
     <div class="ss-modal-box">
       <h4 id="ssModalTitle">স্ক্রিনশট জমা দিন</h4>
       <p class="ss-modal-sub">টাস্ক কমপ্লিট করার প্রমাণ স্ক্রিনশট আপলোড করুন</p>
+      <label class="ss-field-label" for="ssNoteInput">নোট (ঐচ্ছিক)</label>
+      <textarea id="ssNoteInput" class="ss-note-input" placeholder="এখানে কিছু লিখুন (যেমন: আপনার ইউজার নেম বা বিস্তারিত)..." rows="3"></textarea>
+      <label class="ss-field-label" for="ssFileInput">স্ক্রিনশট</label>
       <input type="file" id="ssFileInput" accept="image/*" class="ss-file-input">
       <div id="ssPreviewBox" class="ss-preview-box"></div>
       <div class="ss-modal-actions">
@@ -1157,6 +1205,19 @@
       <div class="tv-modal-actions">
         <button class="btn-task" style="background:#eee; color:#444;" onclick="closeTaskViewModal()">বন্ধ করুন</button>
         <button class="btn-task" id="tvModalOpenBtn" onclick="confirmOpenTaskLink()">লিংক ওপেন করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WITHDRAW REJECT REASON MODAL: রিজেক্ট হওয়া উইথড্র রিকোয়েস্টে ট্যাপ করলে এডমিন প্যানেল থেকে
+       লেখা রিজেক্ট করার কারণ এখানে দেখানো হয় -->
+  <div class="ss-modal-overlay" id="withdrawReasonModalOverlay">
+    <div class="ss-modal-box" style="text-align:left;">
+      <h4 style="color:#ef4444;"><i class="fa-solid fa-circle-xmark"></i> রিজেক্টের কারণ</h4>
+      <p class="ss-modal-sub" id="withdrawReasonModalMeta" style="margin-bottom:14px;"></p>
+      <p id="withdrawReasonModalText" style="font-size:0.95rem; line-height:1.6; color:#333; background:#f7f7f9; border-radius:12px; padding:12px 14px;"></p>
+      <div style="text-align:right; margin-top:16px;">
+        <button onclick="closeWithdrawReasonModal()" style="background:none; border:none; color:#1976d2; font-weight:600; font-size:1rem; cursor:pointer;">বন্ধ করুন</button>
       </div>
     </div>
   </div>
@@ -1347,10 +1408,20 @@
       ],
       adSlot1Links: new Array(25),
       adSlot2Links: new Array(25),
+      adSlot3Links: new Array(25),
+      adSlot4Links: new Array(25),
       adSlot1Reward: 1,
       adSlot2Reward: 1,
+      adSlot3Reward: 1,
+      adSlot4Reward: 1,
       adSlot1DurationSeconds: 15,
       adSlot2DurationSeconds: 15,
+      adSlot3DurationSeconds: 15,
+      adSlot4DurationSeconds: 15,
+      adSlot1Enabled: true,
+      adSlot2Enabled: true,
+      adSlot3Enabled: false,
+      adSlot4Enabled: false,
       minReferralsRequired: 10,
       withdrawFeePercent: 20,
       referralBonus: 1,
@@ -1437,16 +1508,14 @@
       if (typeof updateWithdrawFeePreview === 'function') updateWithdrawFeePreview();
 
       // Ad slot watched counts (based on number of links admin configured)
-      const slot1RewardLabel = document.getElementById('adSlot1RewardLabel');
-      if (slot1RewardLabel) {
-        const r1 = (adminConfig.adSlot1Reward !== undefined && adminConfig.adSlot1Reward !== null) ? adminConfig.adSlot1Reward : 1;
-        slot1RewardLabel.textContent = `+৳${Number(r1).toFixed(2)} / Ad`;
-      }
-      const slot2RewardLabel = document.getElementById('adSlot2RewardLabel');
-      if (slot2RewardLabel) {
-        const r2 = (adminConfig.adSlot2Reward !== undefined && adminConfig.adSlot2Reward !== null) ? adminConfig.adSlot2Reward : 1;
-        slot2RewardLabel.textContent = `+৳${Number(r2).toFixed(2)} / Ad`;
-      }
+      [1, 2, 3, 4].forEach(function(n) {
+        const rewardLabel = document.getElementById('adSlot' + n + 'RewardLabel');
+        if (rewardLabel) {
+          const key = 'adSlot' + n + 'Reward';
+          const r = (adminConfig[key] !== undefined && adminConfig[key] !== null) ? adminConfig[key] : 1;
+          rewardLabel.textContent = `+৳${Number(r).toFixed(2)} / Ad`;
+        }
+      });
 
       renderAdSlots();
       startAdSlotTimers();
@@ -1501,12 +1570,16 @@
       }
 
       // Force Channel Join: সাইন-ইন করার পর, চলতি সেশনে এখনো কনফার্ম না করা থাকলে গেট দেখায়
+      // adminConfig.forceJoinChannels একটি ডাইনামিক অ্যারে - {name, link} অবজেক্টের লিস্ট,
+      // যেখানে অ্যাডমিন প্যানেল থেকে যতগুলো চ্যানেল অ্যাড করা হয়েছে ততগুলোই আসবে (fixed 3টা না)।
       const gateOverlay = document.getElementById('channelGateModalOverlay');
       if (gateOverlay) {
-        const forceJoinOn = adminConfig.forceChannelJoin === true;
+        const forceJoinChannels = Array.isArray(adminConfig.forceJoinChannels) ? adminConfig.forceJoinChannels : [];
+        const forceJoinOn = adminConfig.forceChannelJoin === true && forceJoinChannels.length > 0;
         const alreadyConfirmed = sessionStorage.getItem('mahim_channel_joined') === 'true';
         const isSignedIn = sessionStorage.getItem('mahim_logged_in') === 'true';
         if (forceJoinOn && isSignedIn && !alreadyConfirmed) {
+          renderChannelGateButtons(forceJoinChannels);
           gateOverlay.classList.add('show');
         } else {
           gateOverlay.classList.remove('show');
@@ -1514,14 +1587,29 @@
       }
     }
 
-    window.openChannelGateLink = function() {
-      const link = adminConfig.telegramChannel1 || (adminConfig.tasks && adminConfig.tasks[0] && adminConfig.tasks[0].link) || '';
-      if (link) {
-        window.open(link, '_blank');
-      } else {
-        showToast('এডমিন এখনো চ্যানেল লিংক সেট করেননি');
-      }
-    };
+    // ডাইনামিক্যালি প্রতিটা চ্যানেলের জন্য একটা করে জয়েন বাটন বানায় (1টা, 5টা, 10টা - যতগুলোই থাকুক)
+    function renderChannelGateButtons(channels) {
+      const list = document.getElementById('channelGateList');
+      if (!list) return;
+      list.innerHTML = '';
+      channels.forEach(function(ch, idx) {
+        const name = (ch && (ch.name || ch.title || ch.channelName)) || ('চ্যানেল ' + (idx + 1));
+        const link = (ch && (ch.link || ch.url || ch.channelLink)) || '';
+        const btn = document.createElement('button');
+        btn.className = 'btn-primary';
+        btn.style.background = '#0088cc';
+        btn.style.marginBottom = '0';
+        btn.innerHTML = '<i class="fa-brands fa-telegram"></i> ' + name;
+        btn.onclick = function() {
+          if (link) {
+            window.open(link, '_blank');
+          } else {
+            showToast('এডমিন এখনো এই চ্যানেলের লিংক সেট করেননি');
+          }
+        };
+        list.appendChild(btn);
+      });
+    }
 
     window.confirmChannelJoined = function() {
       sessionStorage.setItem('mahim_channel_joined', 'true');
@@ -2131,9 +2219,16 @@
       // এডমিন প্যানেল থেকে কোনো লিংক সেট না থাকলে (অ্যারে খালি বা অ্যারে না হলে)
       // ম্যাক্স ধরা হবে 0। আগে ডিফল্ট হিসেবে 25 ধরা হতো, যার কারণে এডমিন কোনো এড
       // সেট না করলেও "0/25 Watched" দেখিয়ে Ad Slot চালু/ক্লিকযোগ্য দেখাত।
-      const links = slotNumber === 1 ? adminConfig.adSlot1Links : adminConfig.adSlot2Links;
+      const links = adminConfig['adSlot' + slotNumber + 'Links'];
       if (!Array.isArray(links)) return 0;
       return links.filter(l => l && String(l).trim() !== '').length;
+    }
+
+    function isSlotEnabled(slotNumber) {
+      // এডমিন প্যানেলের "ইউজার প্যানেলে চালু/বন্ধ" টগল (adminConfig.adSlot{N}Enabled) — আগে
+      // এই ফ্ল্যাগটা ইউজার অ্যাপে কোথাও পড়াই হতো না, তাই টগল করলেও ইউজার প্যানেলে কোনো
+      // প্রভাব পড়তো না। এখন false না হলে (অর্থাৎ true বা undefined হলে) এনাবলড ধরা হচ্ছে।
+      return adminConfig['adSlot' + slotNumber + 'Enabled'] !== false;
     }
 
     function formatRemainingTime(ms) {
@@ -2168,10 +2263,9 @@
 
     function renderAdSlots() {
       let counts = getAdWatchedCounts();
-      counts = resetAdSlotIfExpired(1, counts);
-      counts = resetAdSlotIfExpired(2, counts);
+      [1, 2, 3, 4].forEach(n => { counts = resetAdSlotIfExpired(n, counts); });
 
-      [1, 2].forEach(function(slotNumber) {
+      [1, 2, 3, 4].forEach(function(slotNumber) {
         const slotKey = 'slot' + slotNumber;
         const completedKey = slotKey + 'CompletedAt';
         const slotMax = getSlotMax(slotNumber);
@@ -2181,6 +2275,14 @@
         const countEl = document.getElementById('adSlot' + slotNumber + 'Count');
         const timerEl = document.getElementById('adSlot' + slotNumber + 'Timer');
         const cardEl = document.getElementById('adSlot' + slotNumber + 'Card');
+
+        // এডমিন প্যানেল থেকে এই স্লট বন্ধ করা থাকলে পুরো কার্ডটাই ইউজার প্যানেল থেকে
+        // লুকিয়ে ফেলা হচ্ছে (আগে এই চেকটাই ছিল না, তাই টগল করলেও কিছু বদলাতো না)।
+        if (!isSlotEnabled(slotNumber)) {
+          if (cardEl) cardEl.style.display = 'none';
+          return;
+        }
+        if (cardEl) cardEl.style.display = '';
 
         if (slotMax === 0) {
           // এডমিন এখনো এই স্লটের জন্য কোনো এড লিংক সেট করেননি
@@ -2240,14 +2342,17 @@
     }
 
     function getAdWatchedCounts() {
+      const empty = { slot1: 0, slot2: 0, slot3: 0, slot4: 0, slot1CompletedAt: null, slot2CompletedAt: null, slot3CompletedAt: null, slot4CompletedAt: null };
       try {
         const all = JSON.parse(localStorage.getItem('mahim_ad_watched') || '{}');
-        const data = all[currentUserId()] || { slot1: 0, slot2: 0, slot1CompletedAt: null, slot2CompletedAt: null };
-        if (data.slot1CompletedAt === undefined) data.slot1CompletedAt = null;
-        if (data.slot2CompletedAt === undefined) data.slot2CompletedAt = null;
+        const data = Object.assign({}, empty, all[currentUserId()] || {});
+        [1, 2, 3, 4].forEach(n => {
+          if (data['slot' + n] === undefined) data['slot' + n] = 0;
+          if (data['slot' + n + 'CompletedAt'] === undefined) data['slot' + n + 'CompletedAt'] = null;
+        });
         return data;
       } catch (e) {
-        return { slot1: 0, slot2: 0, slot1CompletedAt: null, slot2CompletedAt: null };
+        return empty;
       }
     }
 
@@ -2279,6 +2384,12 @@
         return;
       }
 
+      if (!isSlotEnabled(slotNumber)) {
+        showToast(`Ad Slot ${slotNumber} বর্তমানে বন্ধ আছে`);
+        renderAdSlots();
+        return;
+      }
+
       const slotKey = 'slot' + slotNumber;
       const completedKey = slotKey + 'CompletedAt';
       const slotMax = getSlotMax(slotNumber);
@@ -2307,7 +2418,7 @@
       // এডমিন প্যানেলে যে লিংক এই স্লটের জন্য সেট করা আছে সেটাই এখন আসল Ad হিসেবে
       // নতুন ট্যাবে খুলবে। আগে এই লাইনটা মিসিং ছিল, তাই ক্লিক করলে শুধু কাউন্টডাউন
       // চলতো কিন্তু কোনো এড আসলে ওপেনই হতো না।
-      const links = slotNumber === 1 ? adminConfig.adSlot1Links : adminConfig.adSlot2Links;
+      const links = adminConfig['adSlot' + slotNumber + 'Links'];
       const adLink = Array.isArray(links) ? links[current] : null;
       if (adLink) {
         window.open(adLink, '_blank');
@@ -2321,9 +2432,8 @@
 
     function startAdWatchCountdown(slotNumber) {
       const totalSeconds = getSlotDurationSeconds(slotNumber);
-      const reward = slotNumber === 1
-        ? ((adminConfig.adSlot1Reward !== undefined && adminConfig.adSlot1Reward !== null) ? adminConfig.adSlot1Reward : 1)
-        : ((adminConfig.adSlot2Reward !== undefined && adminConfig.adSlot2Reward !== null) ? adminConfig.adSlot2Reward : 1);
+      const rewardKey = 'adSlot' + slotNumber + 'Reward';
+      const reward = (adminConfig[rewardKey] !== undefined && adminConfig[rewardKey] !== null) ? adminConfig[rewardKey] : 1;
 
       adWatchActiveSlot = slotNumber;
       let remainingSeconds = totalSeconds;
@@ -2547,6 +2657,10 @@
       document.getElementById('ssModalTitle').textContent = (task && task.title ? task.title : 'টাস্ক') + ' - স্ক্রিনশট জমা দিন';
       document.getElementById('ssPreviewBox').innerHTML = '';
       document.getElementById('ssFileInput').value = '';
+      const noteEl = document.getElementById('ssNoteInput');
+      if (noteEl) noteEl.value = '';
+      const submitBtn = document.getElementById('ssSubmitBtn');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'জমা দিন'; }
       document.getElementById('ssModalOverlay').classList.add('show');
     };
 
@@ -2556,24 +2670,82 @@
       activeScreenshotDataUrl = null;
     };
 
+    // ছবি বড় সাইজের হলে (মোবাইল ক্যামেরার ছবি প্রায়ই ২-৮ MB হয়) সরাসরি base64 করে
+    // localStorage-এ রাখলে ব্রাউজারের স্টোরেজ কোটা (৫-১০MB) দ্রুত শেষ হয়ে যায় এবং
+    // Firebase-এ লেখাও ব্যর্থ হতে পারে — এটাই মূলত "স্ক্রিনশট জমা দেওয়া যাচ্ছে না"
+    // সমস্যার আসল কারণ ছিল। তাই এখানে ক্যানভাস দিয়ে ছবি রিসাইজ+কমপ্রেস করে ছোট
+    // JPEG বানানো হয়, যাতে জমা দেওয়া সবসময় নির্ভরযোগ্যভাবে কাজ করে।
+    function compressImageFile(file, maxDim, quality) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          const img = new Image();
+          img.onload = function () {
+            let width = img.width, height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round(height * (maxDim / width));
+                width = maxDim;
+              } else {
+                width = Math.round(width * (maxDim / height));
+                height = maxDim;
+              }
+            }
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', quality));
+            } catch (e) {
+              reject(e);
+            }
+          };
+          img.onerror = function () { reject(new Error('image load failed')); };
+          img.src = ev.target.result;
+        };
+        reader.onerror = function () { reject(new Error('file read failed')); };
+        reader.readAsDataURL(file);
+      });
+    }
+
     document.getElementById('ssFileInput').addEventListener('change', function(e) {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        activeScreenshotDataUrl = ev.target.result;
-        document.getElementById('ssPreviewBox').innerHTML = `<img src="${activeScreenshotDataUrl}">`;
-      };
-      reader.readAsDataURL(file);
+      activeScreenshotDataUrl = null;
+      const previewBox = document.getElementById('ssPreviewBox');
+      const submitBtn = document.getElementById('ssSubmitBtn');
+      previewBox.innerHTML = `<div style="padding:16px 0; color:#888; font-size:0.85rem;">ছবি প্রসেস হচ্ছে...</div>`;
+      if (submitBtn) submitBtn.disabled = true;
+
+      compressImageFile(file, 1000, 0.7).then(function (dataUrl) {
+        activeScreenshotDataUrl = dataUrl;
+        previewBox.innerHTML = `<img src="${dataUrl}">`;
+      }).catch(function (err) {
+        console.warn('Image compress failed, falling back to raw file', err);
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          activeScreenshotDataUrl = ev.target.result;
+          previewBox.innerHTML = `<img src="${activeScreenshotDataUrl}">`;
+        };
+        reader.onerror = function () {
+          previewBox.innerHTML = `<div style="padding:16px 0; color:#e74c3c; font-size:0.85rem;">ছবি লোড করা যায়নি, আবার চেষ্টা করুন</div>`;
+        };
+        reader.readAsDataURL(file);
+      }).finally(function () {
+        if (submitBtn) submitBtn.disabled = false;
+      });
     });
 
     window.submitScreenshot = function() {
       if (activeScreenshotTaskIndex === null) return;
       if (!activeScreenshotDataUrl) {
-        showToast('দয়া করে একটি স্ক্রিনশট ছবি সিলেক্ট করুন');
+        showToast('দয়া করে একটি স্ক্রিনশট ছবি সিলেক্ট করুন (ছবি প্রসেস শেষ হওয়া পর্যন্ত একটু অপেক্ষা করুন)');
         return;
       }
       const task = adminConfig.tasks[activeScreenshotTaskIndex];
+      const noteVal = (document.getElementById('ssNoteInput').value || '').trim();
 
       // ---- সাবমিট করার ঠিক আগে আবার স্লট চেক করা হয়, যাতে স্লট পূর্ণ হয়ে গেলে জমা না হয় ----
       const limitCheck = Number(task && task.limit) || 0;
@@ -2590,6 +2762,13 @@
         }
       }
 
+      const submitBtn = document.getElementById('ssSubmitBtn');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'জমা হচ্ছে...'; }
+
+      // আগে ব্যর্থ হলেও (যেমন localStorage কোটা শেষ) সবসময় "সফল" মেসেজ দেখানো হতো, ফলে
+      // ইউজার ভাবত জমা হয়েছে অথচ আসলে কিছুই সেভ হয়নি। এখন থেকে সেভ সত্যিই সফল হলেই
+      // সফলতার মেসেজ দেখানো হবে, নাহলে স্পষ্ট এরর মেসেজ দেখিয়ে মডাল খোলা থাকবে যাতে
+      // ইউজার আবার চেষ্টা করতে পারে।
       try {
         const email = currentEmail();
         const user = findOrCreateUser(email);
@@ -2601,6 +2780,7 @@
           taskIndex: activeScreenshotTaskIndex,
           taskTitle: task ? task.title : '',
           reward: task ? Number(task.reward || 0) : 0,
+          note: noteVal,
           image: activeScreenshotDataUrl,
           status: 'pending',
           date: new Date().toISOString().slice(0,16).replace('T',' ')
@@ -2608,12 +2788,17 @@
         submissions.push(newSubmission);
         localStorage.setItem('mahim_task_submissions', JSON.stringify(submissions));
         syncSubmissionToFirebase(newSubmission);
+        showToast('স্ক্রিনশট জমা দেওয়া হয়েছে, এডমিন রিভিউ করবে');
+        closeScreenshotModal();
+        renderTasks();
       } catch (e) {
         console.warn('Could not save screenshot submission', e);
+        const msg = (e && e.name === 'QuotaExceededError')
+          ? 'ছবির সাইজ এখনো বেশি বড়, দয়া করে অন্য একটি স্ক্রিনশট দিয়ে আবার চেষ্টা করুন'
+          : 'দুঃখিত, স্ক্রিনশট জমা দেওয়া যায়নি। আবার চেষ্টা করুন।';
+        showToast(msg);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'জমা দিন'; }
       }
-      showToast('স্ক্রিনশট জমা দেওয়া হয়েছে, এডমিন রিভিউ করবে');
-      closeScreenshotModal();
-      renderTasks();
     };
 
     // ---------- AUTH LOGIC ----------
@@ -2900,6 +3085,13 @@
     // এডমিন প্যানেল (mahim-admin-panel.html) থেকে কোনো রিকোয়েস্ট "rejected" করা হলে সেই টাকা
     // অটোমেটিক মূল ব্যালেন্সে ফেরত দেয়। প্রতিটা রিকোয়েস্ট একবারই রিফান্ড হয় (refunded ফ্ল্যাগ দিয়ে
     // ট্র্যাক করা হয়), তাই বারবার রিলোড করলে একই টাকা দুইবার যোগ হবে না।
+    // ডাবল-পেমেন্ট বাগ ফিক্স: আগে এই ফাংশন নিজে থেকেই ইউজারের ব্যালেন্সে টাকা যোগ করে দিত (রিজেক্ট
+    // দেখলেই), কিন্তু এডমিন প্যানেলও রিজেক্ট করার মুহূর্তেই Firebase-এ mahimUsers/{uid}/balance
+    // ট্রানজেকশন চালিয়ে সরাসরি রিফান্ড করে দেয় (index-3.html এর confirmDecision ফাংশন)। ফলে
+    // একই রিজেক্টেড রিকোয়েস্টের টাকা দুইবার (এডমিন প্যানেল থেকে একবার + এই ফাংশন থেকে আরেকবার)
+    // যোগ হয়ে যাচ্ছিল। রিফান্ড এখন শুধু এডমিন প্যানেল থেকেই হবে — এই ফাংশন আর ব্যালেন্স ছোঁবে না,
+    // শুধু "মোট উইথড্র" স্ট্যাট ঠিক রাখতে totalWithdrawn কমায় এবং একবারই নোটিফাই করে (refunded
+    // ফ্ল্যাগ দিয়ে ট্র্যাক করে, যাতে বারবার লোডে বারবার টোস্ট না দেখায়)।
     function reconcileWithdrawRefunds() {
       let all = [];
       try {
@@ -2911,7 +3103,6 @@
       let changed = false;
       all.forEach(w => {
         if (w.userId === myId && w.status === 'rejected' && !w.refunded) {
-          addToUserBalance(Number(w.amount) || 0);
           try {
             const users = getUsersStore();
             const uRec = users.find(u => u.id === myId);
@@ -2927,6 +3118,7 @@
       if (changed) {
         localStorage.setItem('mahim_withdraws', JSON.stringify(all));
         syncWithdrawToFirebase(all.filter(w => w.userId === myId));
+        renderBalance();
         showToast("একটি উইথড্র রিকোয়েস্ট রিজেক্ট হয়েছে, টাকা ব্যালেন্সে ফেরত দেওয়া হয়েছে");
       }
     }
@@ -2950,22 +3142,48 @@
       box.style.textAlign = '';
       box.style.color = '';
       const statusLabel = { pending: 'পেন্ডিং', approved: 'সফল', rejected: 'বাতিল' };
+      // rejected আইটেমে ট্যাপ করলে এডমিন প্যানেল থেকে লেখা কারণ (w.reason) মোডালে দেখানো হয়।
+      // যেসব rejected রিকোয়েস্টে কোনো কারণ সেভ করা নেই (পুরনো ডেটা বা এডমিন প্যানেল আপডেট না হলে),
+      // সেগুলোতে ট্যাপ করলে "কোনো কারণ উল্লেখ করা হয়নি" দেখানো হয় — তাও ট্যাপযোগ্য রাখা হয়েছে যাতে
+      // ইউজার বুঝতে পারে চাপ দেওয়া যায়, খালি ফলাফল না দেখিয়ে UI নিরব থাকে না।
+      window._withdrawHistoryCache = mine;
       box.innerHTML = mine.map(w => {
         const label = statusLabel[w.status] || w.status;
+        const isRejected = w.status === 'rejected';
+        const rowAttrs = isRejected ? `onclick="openWithdrawReasonModal('${w.id}')" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee; cursor:pointer;"` : `style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;"`;
         return `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;">
+          <div ${rowAttrs}>
             <div>
               <h4 style="font-size:0.95rem; margin-bottom:3px;">${w.method || ''} - ${w.number || ''}</h4>
               <p style="font-size:0.8rem; color:#888;">${w.date || ''}</p>
             </div>
             <div style="text-align:right;">
               <h4 style="font-size:1rem; color:#1e1e1e;">৳${Number(w.amount || 0).toFixed(2)}</h4>
-              <span class="ss-pill ${w.status}" style="margin-top:2px; display:inline-block;">${label}</span>
+              <span class="ss-pill ${w.status}" style="margin-top:2px; display:inline-block;">${label}${isRejected ? ' <i class="fa-solid fa-circle-info"></i>' : ''}</span>
             </div>
           </div>
         `;
       }).join('');
     }
+
+    // rejected পিলে ট্যাপ করলে কল হয় — id দিয়ে ক্যাশ করা লিস্ট থেকে রেকর্ড খুঁজে বের করে মোডালে দেখায়।
+    // এডমিন প্যানেল রিজেক্ট করার সময় mahimWithdraws/{id} এর ভেতরে reason ফিল্ড হিসেবে কারণটা
+    // ইতিমধ্যেই সেভ করে (index-3.html এর confirmDecision ফাংশন দ্রষ্টব্য), তাই এখানে সরাসরি সেটাই পড়া হয়।
+    window.openWithdrawReasonModal = function(withdrawId) {
+      const list = window._withdrawHistoryCache || [];
+      const w = list.find(x => x.id === withdrawId);
+      if (!w) return;
+      const metaEl = document.getElementById('withdrawReasonModalMeta');
+      const textEl = document.getElementById('withdrawReasonModalText');
+      if (metaEl) metaEl.textContent = `${w.method || ''} - ${w.number || ''} • ৳${Number(w.amount || 0).toFixed(2)} • ${w.date || ''}`;
+      if (textEl) textEl.textContent = (w.reason && String(w.reason).trim()) ? w.reason : 'কোনো কারণ উল্লেখ করা হয়নি।';
+      const overlay = document.getElementById('withdrawReasonModalOverlay');
+      if (overlay) overlay.classList.add('show');
+    };
+    window.closeWithdrawReasonModal = function() {
+      const overlay = document.getElementById('withdrawReasonModalOverlay');
+      if (overlay) overlay.classList.remove('show');
+    };
 
     // ---------- INIT ----------
     // Anonymous Auth UID এখন primary key, তাই bootApp() (এবং তার ভেতরের findOrCreateUser
