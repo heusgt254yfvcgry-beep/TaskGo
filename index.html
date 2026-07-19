@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Mahim - Sign In</title>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -181,24 +181,213 @@
     }
 
     /* ---------- LOADING SCREEN (replaces email/password sign-in) ---------- */
-    .loading-spinner {
-      width: 46px;
-      height: 46px;
-      margin: 10px auto 22px;
+    /* এই লোডিং স্ক্রিন এখন শুধু একটা ছোট্ট ফিক্সড অ্যানিমেশন না — এটা ততক্ষণ দেখানো থাকে
+       যতক্ষণ না অ্যাপের আসল ডেটা (ইউজার, ব্যালেন্স, টাস্ক, অ্যাডমিন কনফিগ) সত্যিই লোড হয়ে
+       যায়। কাজের লজিক নিচের JS-এ (markDataLoaded / tryCloseLoadingScreen) দেখুন।
+       ডিজাইনটা taskwin_loading.html থেকে হুবহু (রং, ফন্ট, লোগো, অ্যানিমেশন) নেওয়া —
+       শুধু ফোন-মকআপের নকল স্ট্যাটাসবার/টপবারটা বাদ দেওয়া হয়েছে, কারণ আসল ডিভাইসের
+       নিজস্ব স্ট্যাটাসবার তো এমনিতেই থাকে, ওটার উপর নকল একটা বসালে দুটো দেখাত। */
+    :root {
+      --tw-green-deep:#0B8457;
+      --tw-green-bright:#2ECC71;
+      --tw-blue:#1E6FD9;
+      --tw-violet:#6C3FD1;
+      --tw-ink:#0A2A24;
+    }
+
+    .auth-screen {
+      background:
+        radial-gradient(circle at 25% 15%, rgba(46,204,113,.35), transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(108,63,209,.30), transparent 50%),
+        linear-gradient(160deg, #EAF9F1 0%, #E7F1FB 55%, #F1ECFB 100%);
+      overflow: hidden;
+    }
+
+    .auth-screen::before, .auth-screen::after {
+      content: "";
+      position: absolute;
       border-radius: 50%;
-      border: 4px solid #f0d3de;
-      border-top-color: #e52d87;
-      animation: spin 0.8s linear infinite;
+      filter: blur(2px);
+      opacity: .5;
+      animation: tw-drift 7s ease-in-out infinite;
+    }
+    .auth-screen::before {
+      width: 10px; height: 10px; background: var(--tw-green-bright);
+      top: 22%; left: 20%;
+      animation-delay: .3s;
+    }
+    .auth-screen::after {
+      width: 7px; height: 7px; background: var(--tw-violet);
+      top: 68%; left: 75%;
+      animation-delay: 1.4s;
+    }
+    @keyframes tw-drift {
+      0%,100% { transform: translateY(0) scale(1); opacity: .35; }
+      50% { transform: translateY(-14px) scale(1.3); opacity: .8; }
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .tw-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      position: relative;
     }
 
-    .loading-text {
-      color: #666;
-      font-size: 0.95rem;
+    .tw-logo-wrap {
+      position: relative;
+      width: 168px;
+      height: 168px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tw-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--tw-green-bright), var(--tw-blue), var(--tw-violet), var(--tw-green-bright));
+      animation: tw-spin 2.4s linear infinite;
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+      filter: drop-shadow(0 0 10px rgba(46,204,113,.55));
+    }
+    @keyframes tw-spin { to { transform: rotate(360deg); } }
+
+    .tw-ring-soft {
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      border: 2px dashed rgba(30,111,217,.35);
+      animation: tw-spin-rev 9s linear infinite;
+    }
+    @keyframes tw-spin-rev { to { transform: rotate(-360deg); } }
+
+    .tw-pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid var(--tw-green-bright);
+      opacity: 0;
+      animation: tw-pulse-out 2.4s ease-out infinite;
+    }
+    @keyframes tw-pulse-out {
+      0% { transform: scale(.78); opacity: .55; }
+      70% { opacity: 0; }
+      100% { transform: scale(1.28); opacity: 0; }
+    }
+
+    .tw-logo-plate {
+      width: 120px;
+      height: 120px;
+      border-radius: 34px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(11,132,87,.28), 0 2px 8px rgba(0,0,0,.06);
+      overflow: hidden;
+      animation: tw-breathe 2.4s ease-in-out infinite;
+    }
+    @keyframes tw-breathe {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.045); }
+    }
+    .tw-logo-plate img {
+      width: 88%;
+      height: 88%;
+      object-fit: contain;
+    }
+
+    .tw-spark {
+      position: absolute;
+      font-size: 14px;
+      opacity: 0;
+      animation: tw-spark-pop 2.4s ease-in-out infinite;
+    }
+    .tw-spark.s1 { top: 6%; right: 12%; animation-delay: .1s; }
+    .tw-spark.s2 { bottom: 10%; left: 8%; animation-delay: .9s; }
+    .tw-spark.s3 { top: 50%; right: -6px; animation-delay: 1.6s; }
+    @keyframes tw-spark-pop {
+      0%,100% { opacity: 0; transform: scale(.4) rotate(0deg); }
+      45% { opacity: 1; transform: scale(1.1) rotate(20deg); }
+    }
+
+    .tw-brand {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 800;
+      font-size: 30px;
+      letter-spacing: .3px;
+      background: linear-gradient(95deg, var(--tw-green-deep), var(--tw-blue) 55%, var(--tw-violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tw-status-text {
+      font-family: 'Hind Siliguri', 'Baloo 2', sans-serif;
+      font-weight: 600;
+      font-size: 15.5px;
+      color: var(--tw-ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 22px;
+    }
+    .tw-status-text .tw-dots span {
+      animation: tw-blink 1.4s infinite;
+      opacity: 0;
+    }
+    .tw-status-text .tw-dots span:nth-child(1) { animation-delay: 0s; }
+    .tw-status-text .tw-dots span:nth-child(2) { animation-delay: .2s; }
+    .tw-status-text .tw-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes tw-blink {
+      0%,20% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .tw-progress-track {
+      width: 220px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(11,132,87,.14);
+      overflow: hidden;
+      position: relative;
+    }
+    .tw-progress-fill {
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--tw-green-bright), var(--tw-blue), var(--tw-violet));
+      animation: tw-load-bar 1.8s ease-in-out infinite;
+    }
+    @keyframes tw-load-bar {
+      0% { left: -40%; }
+      60% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    .tw-hint {
+      font-family: 'Hind Siliguri', sans-serif;
+      font-size: 12.5px;
+      color: rgba(10,42,36,.55);
       font-weight: 500;
+      text-align: center;
+      padding: 0 40px;
+    }
+
+    .tw-home-indicator {
+      width: 120px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.18);
+      margin: 8px auto 0;
     }
 
     /* ---------- MAIN APP (hidden during auth) ---------- */
@@ -420,6 +609,107 @@
       font-size: 1.3rem;
       font-weight: 700;
       color: var(--text-dark);
+    }
+
+    /* ---------- TEAM MEMBERS লিস্ট স্ক্রিন ---------- */
+    /* "My Team" এর মোট সদস্য / Active / Inactive কার্ডে ট্যাপ করলে এই ফুল-স্ক্রিন খোলে,
+       Image 1 এর স্টাইলে (অ্যাভাটার + নাম/UID + Active/Inactive পিল) রেফারড সদস্যদের লিস্ট দেখায়। */
+    .team-list-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--primary-bg);
+      z-index: 400;
+      display: none;
+      flex-direction: column;
+    }
+    .team-list-screen.show { display: flex; }
+    .team-list-header {
+      background: var(--theme-gradient);
+      color: var(--white);
+      padding: 16px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      flex-shrink: 0;
+    }
+    .team-list-back {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .team-list-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .team-list-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 16px 30px;
+    }
+    .team-member-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 4px;
+      border-bottom: 1px solid #edf0f4;
+    }
+    .team-member-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .team-member-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #e6f7ef;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .team-member-info h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-member-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .team-status-pill {
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .team-status-pill.active { background: #16a34a; }
+    .team-status-pill.inactive { background: #e53935; }
+    .team-list-empty {
+      text-align: center;
+      color: #888;
+      padding: 60px 20px;
+      font-size: 0.95rem;
     }
 
     .section-title {
@@ -965,21 +1255,44 @@
 <div class="app-container" id="appContainer">
   <!-- SIGN IN SCREEN -->
   <div class="auth-screen" id="authScreen">
-    <div class="auth-card" id="loginCard">
-      <div class="auth-logo"></div>
-      <div class="auth-title" id="authTitle">Mahim</div>
-      <div class="auth-sub">অ্যাপ লোড হচ্ছে, একটু অপেক্ষা করুন...</div>
+    <div class="tw-stage">
+      <div class="tw-logo-wrap">
+        <div class="tw-pulse"></div>
+        <div class="tw-ring"></div>
+        <div class="tw-ring-soft"></div>
+        <div class="tw-logo-plate">
+          <img src="data:image/jpeg;base64,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" alt="Logo">
+        </div>
+        <span class="tw-spark s1">✨</span>
+        <span class="tw-spark s2">💚</span>
+        <span class="tw-spark s3">⭐</span>
+      </div>
 
-      <div class="loading-spinner"></div>
-      <div class="loading-text">লোড হচ্ছে...</div>
+      <div class="tw-brand">Task Win</div>
 
-      <!-- hidden, kept only so existing sign-in/registration logic keeps working -->
+      <div class="tw-status-text">
+        <span>Loading Your Account</span>
+        <span class="tw-dots"><span>.</span><span>.</span><span>.</span></span>
+      </div>
+
+      <div class="tw-progress-track">
+        <div class="tw-progress-fill"></div>
+      </div>
+
+      <div class="tw-hint">আপনার ওয়ার্কস্পেস প্রস্তুত হচ্ছে, একটু অপেক্ষা করুন</div>
+
+      <div class="tw-home-indicator"></div>
+    </div>
+
+    <!-- hidden, kept only so existing sign-in/registration logic keeps working -->
+    <div class="auth-card" id="loginCard" style="display:none">
       <input type="email" class="input-field" id="emailInput" style="display:none" autocomplete="email">
       <input type="password" class="input-field" id="passwordInput" style="display:none" autocomplete="current-password">
       <button class="btn-signin" id="signInButton" style="display:none"></button>
       <div class="auth-error" id="authError" style="display:none"></div>
     </div>
   </div>
+
 
   <!-- FORCE CHANNEL JOIN GATE: shown after sign-in if admin has enabled "Force Channel Join" -->
   <!-- Channel buttons are injected dynamically (see renderChannelGateButtons) based on adminConfig.forceJoinChannels -->
@@ -989,7 +1302,8 @@
       <h4 style="margin-bottom:8px;">চ্যানেলে জয়েন করুন</h4>
       <p style="font-size:0.9rem; color:#444; margin-bottom:18px;">এই অ্যাপ ব্যবহার করতে হলে আগে আমাদের অফিসিয়াল চ্যানেল(গুলো)-এ জয়েন করতে হবে।</p>
       <div id="channelGateList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;"></div>
-      <button class="btn-primary" onclick="confirmChannelJoined()">✅ জয়েন করেছি, চালিয়ে যান</button>
+      <button class="btn-primary" id="channelVerifyBtn" onclick="verifyChannelJoin()">✅ Verify / যাচাই করুন</button>
+      <div id="channelVerifyStatus" style="font-size:0.85rem; margin-top:12px; min-height:18px; line-height:1.4;"></div>
     </div>
   </div>
 
@@ -1092,17 +1406,17 @@
           <p style="margin:0; opacity:0.9; font-size:0.85rem;">আপনার রেফারেল নেটওয়ার্ক</p>
         </div>
         <div class="quick-stats-grid" style="margin-top:12px;">
-          <div class="card quick-stat-card">
+          <div class="card quick-stat-card" style="cursor:pointer;" onclick="openTeamListScreen('all')">
             <div class="quick-stat-icon" style="background:#fde8f3; color:#e52d87;"><i class="fa-solid fa-user-group"></i></div>
             <p class="quick-stat-label">মোট সদস্য</p>
             <h3 class="quick-stat-value" id="teamTotalCount">0</h3>
           </div>
-          <div class="card quick-stat-card">
+          <div class="card quick-stat-card" style="cursor:pointer;" onclick="openTeamListScreen('active')">
             <div class="quick-stat-icon" style="background:#e6f7ef; color:#16a34a;"><i class="fa-solid fa-user-check"></i></div>
             <p class="quick-stat-label">ACTIVE</p>
             <h3 class="quick-stat-value" id="teamActiveCount">0</h3>
           </div>
-          <div class="card quick-stat-card">
+          <div class="card quick-stat-card" style="cursor:pointer;" onclick="openTeamListScreen('inactive')">
             <div class="quick-stat-icon" style="background:#fdecea; color:#e53935;"><i class="fa-solid fa-user-xmark"></i></div>
             <p class="quick-stat-label">INACTIVE</p>
             <h3 class="quick-stat-value" id="teamInactiveCount">0</h3>
@@ -1153,6 +1467,16 @@
       <p id="referGateModalText" style="font-size:1rem; line-height:1.5; color:#222; margin-bottom:18px;"></p>
       <div style="text-align:right;">
         <button onclick="closeReferGateModal()" style="background:none; border:none; color:#1976d2; font-weight:600; font-size:1rem; cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASK GATE MODAL: উইথড্র করার আগে এডমিন-নির্ধারিত সংখ্যক টাস্ক কমপ্লিট না থাকলে দেখানো হয় -->
+  <div class="ss-modal-overlay" id="taskGateModalOverlay">
+    <div class="ss-modal-box" style="text-align:left;">
+      <p id="taskGateModalText" style="font-size:1rem; line-height:1.5; color:#222; margin-bottom:18px;"></p>
+      <div style="text-align:right;">
+        <button onclick="closeTaskGateModal()" style="background:none; border:none; color:#1976d2; font-weight:600; font-size:1rem; cursor:pointer;">Close</button>
       </div>
     </div>
   </div>
@@ -1220,6 +1544,15 @@
         <button onclick="closeWithdrawReasonModal()" style="background:none; border:none; color:#1976d2; font-weight:600; font-size:1rem; cursor:pointer;">বন্ধ করুন</button>
       </div>
     </div>
+  </div>
+
+  <!-- TEAM MEMBERS লিস্ট স্ক্রিন: "My Team" এর মোট সদস্য/Active/Inactive কার্ডে ট্যাপ করলে দেখা যায় -->
+  <div class="team-list-screen" id="teamListScreen">
+    <div class="team-list-header">
+      <div class="team-list-back" onclick="closeTeamListScreen()"><i class="fa-solid fa-arrow-left"></i></div>
+      <div class="team-list-title" id="teamListTitle">মোট সদস্য</div>
+    </div>
+    <div class="team-list-body" id="teamListBody"></div>
   </div>
 </div>
 
@@ -1423,6 +1756,9 @@
       adSlot3Enabled: false,
       adSlot4Enabled: false,
       minReferralsRequired: 10,
+      // উইথড্র করার আগে অন্তত কয়টা টাস্ক অ্যাপ্রুভড/কমপ্লিট থাকতে হবে — এডমিন প্যানেল থেকে সেট হয়
+      // (যেমন ১, ২ বা ৩টা)। 0 বা খালি মানে এই শর্ত বন্ধ (কোনো টাস্ক কমপ্লিট না করেই তোলা যাবে)।
+      minTasksRequired: 0,
       withdrawFeePercent: 20,
       referralBonus: 1,
       telegramBotAppUrl: "https://t.me/Go_tasks_ern_bot/app"
@@ -1611,11 +1947,87 @@
       });
     }
 
-    window.confirmChannelJoined = function() {
-      sessionStorage.setItem('mahim_channel_joined', 'true');
-      const gateOverlay = document.getElementById('channelGateModalOverlay');
-      if (gateOverlay) gateOverlay.classList.remove('show');
-      showToast('স্বাগতম! এখন অ্যাপ ব্যবহার করতে পারবেন');
+    // ---------- FORCE CHANNEL JOIN: REAL VERIFICATION VIA GOOGLE APPS SCRIPT ----------
+    // আগে এই গেট শুধু ইউজারের কথায় বিশ্বাস করে "জয়েন করেছি" বাটনে ক্লিক করলেই পাস করিয়ে দিত —
+    // আসলে জয়েন করেছে কিনা তা কখনো যাচাই হতো না। এখন Google Apps Script Web App (যেটা Telegram
+    // Bot API দিয়ে getChatMember চেক করে) কল করে সত্যিকারের মেম্বারশিপ যাচাই করা হয়।
+    const TELEGRAM_VERIFY_API_URL = 'https://script.google.com/macros/s/AKfycbwKlBALK6HNXf5iUUoHtXwasDJYXiyCw4L4GfiqaXk5H7pdJ76AYIHkGHQWvVTOBkbX/exec';
+
+    // Apps Script-এর userId হতে হবে আসল Telegram numeric user id (Bot API দিয়ে getChatMember চেক
+    // করার জন্য এটাই দরকার) — device id বা email দিয়ে চলবে না। তাই সবচেয়ে নির্ভরযোগ্য উৎস থেকে
+    // ক্রমান্বয়ে খোঁজা হয়: (১) Telegram.WebApp থেকে লাইভ, (২) সাইন-ইনের সময় সেভ করা tg<id>@telegram.user
+    // ইমেইল থেকে পার্স করে।
+    function getTelegramUserIdForVerification() {
+      try {
+        const tgUser = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) ? window.Telegram.WebApp.initDataUnsafe.user : null;
+        if (tgUser && tgUser.id) return String(tgUser.id);
+      } catch (e) {}
+      try {
+        const match = /^tg(\d+)@telegram\.user$/.exec(currentEmail());
+        if (match) return match[1];
+      } catch (e) {}
+      return null;
+    }
+
+    window.verifyChannelJoin = async function() {
+      const btn = document.getElementById('channelVerifyBtn');
+      const statusEl = document.getElementById('channelVerifyStatus');
+      const userId = getTelegramUserIdForVerification();
+
+      if (statusEl) { statusEl.style.color = '#d32f2f'; statusEl.textContent = ''; }
+
+      if (!userId) {
+        if (statusEl) statusEl.textContent = 'আপনার Telegram User ID পাওয়া যায়নি। অ্যাপটি অবশ্যই Telegram-এর ভেতর থেকে খুলুন।';
+        showToast('Telegram User ID খুঁজে পাওয়া যায়নি');
+        return;
+      }
+
+      if (!btn) return;
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.style.opacity = '0.65';
+      btn.style.cursor = 'not-allowed';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+
+      try {
+        const apiUrl = TELEGRAM_VERIFY_API_URL + '?userId=' + encodeURIComponent(userId);
+        const res = await fetch(apiUrl, { method: 'GET' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        if (data && data.ok === true && data.joined === true) {
+          // --- সফল: প্রফেশনাল সাকসেস অ্যালার্ট ---
+          sessionStorage.setItem('mahim_channel_joined', 'true');
+          if (statusEl) {
+            statusEl.style.color = '#0B8457';
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> ভেরিফিকেশন সফল হয়েছে।';
+          }
+          const gateOverlay = document.getElementById('channelGateModalOverlay');
+          if (gateOverlay) gateOverlay.classList.remove('show');
+          showToast('✅ ভেরিফিকেশন সফল! সব চ্যানেলে জয়েন কনফার্ম হয়েছে, স্বাগতম!');
+        } else if (data && data.ok === true && data.joined === false) {
+          // --- জয়েন করেনি: কড়া সতর্কবার্তা, অ্যাপ ব্যবহার করতে দেওয়া হবে না ---
+          if (statusEl) {
+            statusEl.style.color = '#d32f2f';
+            statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> আপনি এখনো সবগুলো বাধ্যতামূলক চ্যানেলে জয়েন করেননি। প্রথমে উপরের প্রতিটা চ্যানেলে জয়েন করুন, তারপর আবার "Verify" বাটনে চাপুন। জয়েন না করলে অ্যাপ ব্যবহার করা যাবে না।';
+          }
+          showToast('⚠️ আপনি এখনো চ্যানেলে জয়েন করেননি');
+        } else {
+          // --- API থেকে error এসেছে ---
+          const errMsg = (data && data.error) ? data.error : 'অজানা ত্রুটি';
+          if (statusEl) statusEl.textContent = 'যাচাই করা যায়নি (' + errMsg + ')। কিছুক্ষণ পর আবার চেষ্টা করুন।';
+          showToast('যাচাই করতে সমস্যা হয়েছে, আবার চেষ্টা করুন');
+        }
+      } catch (err) {
+        console.warn('Channel verification request failed', err);
+        if (statusEl) statusEl.textContent = 'সার্ভারের সাথে যোগাযোগ করা যায়নি। ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।';
+        showToast('নেটওয়ার্ক সমস্যা হয়েছে, আবার চেষ্টা করুন');
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.innerHTML = originalHTML;
+      }
     };
 
     // ---------- UNIFIED USER ACCOUNT STORE (shared with Admin Panel's "Users & Balance") ----------
@@ -1687,17 +2099,26 @@
     }
 
     // টাস্ক স্ক্রিনশট সাবমিশন Firebase-এ পাঠায় (mahimTaskSubmissions/{id})
+    // আগে এই ফাংশন ব্যর্থ হলে শুধু console.warn করত আর কলারকে কিছুই জানাত না — ফলে
+    // submitScreenshot() সবসময় ধরে নিত সিঙ্ক সফল হয়েছে এবং ইউজারকে "জমা দেওয়া হয়েছে"
+    // দেখিয়ে দিত, যদিও Firebase-এ (তাই এডমিন প্যানেলে) আসলে কিছুই পৌঁছায়নি — এটাই
+    // "স্ক্রিনশট জমা দেওয়া যাচ্ছে না" সমস্যার আসল কারণ ছিল। এখন এই ফাংশন একটা Promise
+    // রিটার্ন করে যা রিজেক্ট হয় ব্যর্থ হলে, যাতে কলার আসল ফলাফল অনুযায়ী UI দেখাতে পারে।
     function syncSubmissionToFirebase(subOrList) {
       const db = fb();
-      if (!db) return;
+      if (!db) return Promise.reject(new Error('firebase-not-ready'));
       try {
         const list = Array.isArray(subOrList) ? subOrList : [subOrList];
         const updates = {};
         list.forEach(s => { if (s && s.id) updates['mahimTaskSubmissions/' + s.id] = s; });
-        if (Object.keys(updates).length === 0) return;
-        db.ref().update(updates).catch(err => console.warn('Firebase submission sync failed', err));
+        if (Object.keys(updates).length === 0) return Promise.resolve();
+        return db.ref().update(updates).catch(err => {
+          console.warn('Firebase submission sync failed', err);
+          throw err;
+        });
       } catch (e) {
         console.warn('Firebase submission sync failed', e);
+        return Promise.reject(e);
       }
     }
 
@@ -1714,12 +2135,45 @@
     // "মাস্টার" ধরা হয় (দেখুন উপরের নোট) — তাই প্রতিটা আপডেটে পুরো নোডটা localStorage ক্যাশে
     // ওভাররাইট করে সাথে সাথে প্রাসঙ্গিক UI ফাংশনগুলো আবার রেন্ডার করা হয়। bootApp() থেকে
     // একবারই কল হয় (নিচের ফ্ল্যাগ দিয়ে ডাবল-লিসেনার আটকানো হয়)।
+    // ---------- লোডিং স্ক্রিন: শুধু auth না, আসল ডেটা লোড না হওয়া পর্যন্ত অপেক্ষা ----------
+    // আগে sign-in সফল হলেই লোডিং স্ক্রিন সরে যেত — কিন্তু তখনো mahimUsers/mahimWithdraws/
+    // mahimTaskSubmissions/mahimAdminConfig-এর রিয়েলটাইম ডেটা Firebase থেকে আসাই শুরু হতো না,
+    // ফলে ইউজার প্রথম কয়েক মুহূর্ত ফাঁকা/পুরনো ব্যালেন্স-টাস্ক দেখতো। এখন hideAuthScreen() শুধু
+    // "auth রেডি" ফ্ল্যাগ সেট করে; নিচের ৪টা রিয়েলটাইম নোডের প্রথম ডেটাও এলে তবেই আসল স্ক্রিন সরে।
+    // Firebase/নেটওয়ার্ক একদম কাজ না করলেও ৮ সেকেন্ড পর সেফটি টাইমআউটে অ্যাপ খুলে যাবে, যাতে
+    // ইউজার চিরকাল লোডিং স্ক্রিনে আটকে না থাকে।
+    const mahimLoadFlags = { auth: false, users: false, withdraws: false, submissions: false, adminConfig: false };
+    let mahimLoadingScreenClosed = false;
+    function markDataLoaded(key) {
+      if (!(key in mahimLoadFlags)) return;
+      mahimLoadFlags[key] = true;
+      tryCloseLoadingScreen();
+    }
+    function tryCloseLoadingScreen() {
+      if (mahimLoadingScreenClosed) return;
+      const allDone = Object.keys(mahimLoadFlags).every(function (k) { return mahimLoadFlags[k]; });
+      if (!allDone) return;
+      mahimLoadingScreenClosed = true;
+      const el = document.getElementById('authScreen');
+      if (el) el.classList.add('hidden-auth');
+    }
+    setTimeout(function () {
+      if (mahimLoadingScreenClosed) return;
+      mahimLoadingScreenClosed = true;
+      const el = document.getElementById('authScreen');
+      if (el) el.classList.add('hidden-auth');
+    }, 8000);
+
     let realtimeListenersAttached = false;
     function attachRealtimeListeners() {
       if (realtimeListenersAttached) return;
       const db = fb();
       if (!db) {
         console.warn('attachRealtimeListeners: Firebase database প্রস্তুত না (SDK/init ব্যর্থ), রিয়েলটাইম সিঙ্ক বন্ধ থাকবে');
+        markDataLoaded('users');
+        markDataLoaded('withdraws');
+        markDataLoaded('submissions');
+        markDataLoaded('adminConfig');
         return;
       }
       realtimeListenersAttached = true;
@@ -1739,8 +2193,10 @@
         } catch (e) {
           console.warn('mahimUsers realtime update handling failed', e);
         }
+        markDataLoaded('users');
       }, function (err) {
         console.warn('mahimUsers realtime listener error (Firebase Database rules চেক করুন — read permission লাগবে)', err);
+        markDataLoaded('users');
       });
 
       // ---- mahimWithdraws: এডমিন approve/reject করলে সাথে সাথে জানার জন্য ----
@@ -1757,25 +2213,47 @@
         } catch (e) {
           console.warn('mahimWithdraws realtime update handling failed', e);
         }
+        markDataLoaded('withdraws');
       }, function (err) {
         console.warn('mahimWithdraws realtime listener error (Firebase Database rules চেক করুন — read permission লাগবে)', err);
+        markDataLoaded('withdraws');
       });
 
       // ---- mahimTaskSubmissions: এডমিন কোনো স্ক্রিনশট approve/reject করলে টাস্ক-রিওয়ার্ড +
       // রেফারেল কনফার্মেশন (referrer বোনাস) ট্রিগার করার জন্য ----
       // renderTasks() নিজেই ভেতরে processApprovedTaskSubmissions() কল করে, যেটা approved+
       // rewarded-না-হওয়া সাবমিশনের টাকা যোগ করে এবং confirmReferralIfPending() ট্রিগার করে।
+      //
+      // ⚠️ বাগ ফিক্স ("স্ক্রিনশট অনেক বড়" এরর): এই লিসেনার Firebase থেকে সব ইউজারের সব
+      // সাবমিশন নামিয়ে এই ডিভাইসের localStorage-এ পুরোটাই সেভ করতো — প্রতিটা সাবমিশনের সাথে
+      // থাকা পূর্ণ base64 স্ক্রিনশট ছবিসহ। অ্যাপ যত ব্যবহার হতো, এই একটামাত্র localStorage
+      // key তত বড় হতে হতে ব্রাউজারের স্টোরেজ কোটা (৫-১০MB) প্রায় ভরে যেত। এরপর ইউজার
+      // নিজে একটা নতুন (ছোট/কমপ্রেসড) স্ক্রিনশট সিলেক্ট করলেও localStorage আগে থেকেই প্রায়
+      // ভরা থাকায় সেভ করতে গিয়ে QuotaExceededError হতো — আর সেটাকেই "ছবির সাইজ অনেক বড়"
+      // মেসেজ হিসেবে দেখানো হতো, যদিও আসল সমস্যা নতুন ছবির সাইজ না, পুরনো জমে থাকা ডেটা।
+      // ছবিটা এই ফাইলের কোথাও (অন্য ইউজারের সাবমিশনের প্রেক্ষিতে) দেখানোই হয় না — শুধু এডমিন
+      // প্যানেল রিভিউয়ের সময় সরাসরি Firebase থেকে ছবি পড়ে। তাই এখানে ক্যাশ করার সময় ছবিটা বাদ
+      // দিয়ে বাকি সব ফিল্ড (id/userId/status/reward ইত্যাদি, যেগুলো গোনা/ফিল্টার করতে লাগে)
+      // রাখা হচ্ছে, যাতে localStorage সবসময় হালকা থাকে।
       db.ref('mahimTaskSubmissions').on('value', function (snapshot) {
         try {
           const val = snapshot.val() || {};
-          const list = Object.keys(val).map(k => val[k]);
+          const list = Object.keys(val).map(function (k) {
+            const s = val[k];
+            if (!s || typeof s !== 'object') return s;
+            const lightweight = Object.assign({}, s);
+            delete lightweight.image;
+            return lightweight;
+          });
           localStorage.setItem('mahim_task_submissions', JSON.stringify(list));
           if (typeof renderTasks === 'function') renderTasks();
         } catch (e) {
           console.warn('mahimTaskSubmissions realtime update handling failed', e);
         }
+        markDataLoaded('submissions');
       }, function (err) {
         console.warn('mahimTaskSubmissions realtime listener error (Firebase Database rules চেক করুন — read permission লাগবে)', err);
+        markDataLoaded('submissions');
       });
 
       // ---- mahimAdminConfig: এডমিন প্যানেলে General/Appearance/Links/Images/Feature Toggle/
@@ -1787,17 +2265,20 @@
       db.ref('mahimAdminConfig').on('value', function (snapshot) {
         try {
           const val = snapshot.val();
-          if (!val) return;
-          adminConfig = Object.assign({}, defaultAdminConfig, val);
-          localStorage.setItem('mahim_admin_config', JSON.stringify(adminConfig));
-          applyAdminConfigToUI();
-          if (typeof renderTasks === 'function') renderTasks();
-          if (typeof renderAdSlots === 'function') renderAdSlots();
+          if (val) {
+            adminConfig = Object.assign({}, defaultAdminConfig, val);
+            localStorage.setItem('mahim_admin_config', JSON.stringify(adminConfig));
+            applyAdminConfigToUI();
+            if (typeof renderTasks === 'function') renderTasks();
+            if (typeof renderAdSlots === 'function') renderAdSlots();
+          }
         } catch (e) {
           console.warn('mahimAdminConfig realtime update handling failed', e);
         }
+        markDataLoaded('adminConfig');
       }, function (err) {
         console.warn('mahimAdminConfig realtime listener error (Firebase Database rules চেক করুন — read permission লাগবে)', err);
+        markDataLoaded('adminConfig');
       });
     }
 
@@ -1921,7 +2402,17 @@
           const existing = snap.val();
           if (!existing) {
             ref.set({ userId: uid, firstSeen: new Date().toISOString() }).catch(function (err) {
-              console.warn('Device fingerprint claim ব্যর্থ (rules চেক করুন)', err);
+              if (err && err.code === 'PERMISSION_DENIED') {
+                console.error(
+                  '❌ mahimDeviceFingerprints পাথে WRITE করার অনুমতি নেই (Firebase Rules)। ' +
+                  'এই একটা কারণেই "এক ফোনে এক একাউন্ট" ফিচারটা কাজ করছে না — প্রথম একাউন্টের ' +
+                  'ফিঙ্গারপ্রিন্টই কখনো সেভ হচ্ছে না, তাই পরের কোনো একাউন্টের সাথেই তুলনা করার কিছু থাকছে না। ' +
+                  'সমাধান: Firebase Console → Realtime Database → Rules-এ mahimDeviceFingerprints ' +
+                  'পাথের জন্য rule যোগ করুন (নিচের rules স্নিপেট দেখুন)।'
+                );
+              } else {
+                console.warn('Device fingerprint claim ব্যর্থ (rules চেক করুন)', err);
+              }
             });
             resolve(false);
           } else if (existing.userId === uid) {
@@ -1930,7 +2421,16 @@
             resolve(true); // অন্য একাউন্ট আগে থেকেই এই ডিভাইস ব্যবহার করছে
           }
         }).catch(function (err) {
-          console.warn('Device fingerprint চেক ব্যর্থ (নেটওয়ার্ক/rules)', err);
+          if (err && err.code === 'PERMISSION_DENIED') {
+            console.error(
+              '❌ mahimDeviceFingerprints পাথ READ করার অনুমতি নেই (Firebase Rules)। এই কারণে ' +
+              '"এক ফোনে এক একাউন্ট" চেকটা প্রতিবার fail হয়ে fail-open ভাবে সবাইকে ঢুকতে দিচ্ছে — অর্থাৎ ' +
+              'একই ফোনে বারবার নতুন একাউন্ট খোলা হলেও ব্যান স্ক্রিন কখনোই দেখাচ্ছে না। সমাধান: Firebase ' +
+              'Console → Realtime Database → Rules-এ mahimDeviceFingerprints পাথের জন্য rule যোগ করুন।'
+            );
+          } else {
+            console.warn('Device fingerprint চেক ব্যর্থ (নেটওয়ার্ক/rules)', err);
+          }
           resolve(false); // চেক ব্যর্থ হলে ইউজারকে আটকানো হবে না (fail-open)
         });
       });
@@ -2133,13 +2633,22 @@
       if (teamActiveEl) teamActiveEl.textContent = String(activeCount);
       if (teamInactiveEl) teamInactiveEl.textContent = String(inactiveCount);
 
+      // টিম লিস্ট স্ক্রিন খোলা অবস্থায় থাকলে (যেমন এডমিন কোনো সদস্যের টাস্ক অ্যাপ্রুভ করার পর
+      // Active/Inactive বদলে গেলে) সাথে সাথেই লিস্টটাও রিফ্রেশ হয়ে যায়।
+      const teamListScreenEl = document.getElementById('teamListScreen');
+      if (teamListScreenEl && teamListScreenEl.classList.contains('show')) {
+        renderTeamListBody();
+      }
+
       renderLeaderboard();
     }
 
-    // ---------- TOP REFERS LEADERBOARD ----------
-    // আগে "Top Refers" কার্ডে সবসময় স্ট্যাটিক "এখনো কোনো রেফার নেই" টেক্সট দেখাত,
-    // কোনো ইউজার কতজনকে রেফার করেছে তা কখনো দেখানো হতো না। এখন সব ইউজারকে
-    // referralCount অনুযায়ী সাজিয়ে (বেশি থেকে কম) টপ ১০ জনকে নাম ও রেফার সংখ্যাসহ দেখায়।
+    // ---------- TOP REFERS লিডারবোর্ড ----------
+    // "সবচেয়ে বেশি Active রেফার" থাকা টপ ১৫ জনকে দেখানো হয়। এখানে সংরক্ষিত referralCount ফিল্ডের
+    // উপর নির্ভর না করে প্রতিটা ইউজারের Active রেফার সংখ্যা সরাসরি লাইভ গণনা করা হয় (referredBy তার
+    // uid এবং referralConfirmed true এমন কতজন সদস্য আছে) — এটা টিম লিস্ট স্ক্রিনের Active ফিল্টারের
+    // সাথে একদম একই সংজ্ঞা ব্যবহার করে, তাই referralCount ফিল্ডে কোনো পুরনো গরমিল/বাগ থাকলেও
+    // লিডারবোর্ড সবসময় আসল Active রেফার সংখ্যা অনুযায়ীই সঠিকভাবে সাজানো থাকবে।
     // localStorage এখন Firebase realtime listener দিয়ে সবসময় সিঙ্কড থাকে (নিচে attachRealtimeListeners
     // দেখুন), তাই লিডারবোর্ড এখন সরাসরি লোকাল ক্যাশ থেকেই রেন্ডার করা যায় — আলাদা করে Firebase-এ
     // আবার fetch করার দরকার নেই, এতে ডুপ্লিকেট রিকোয়েস্ট কমে ও লোডিং আরও দ্রুত হয়।
@@ -2154,12 +2663,23 @@
     function renderLeaderboardRows(users) {
       const box = document.getElementById('leaderboardList');
       if (!box) return;
-      const top = (users || [])
-        .filter(u => Number(u.referralCount || 0) > 0)
-        .sort((a, b) => Number(b.referralCount || 0) - Number(a.referralCount || 0))
+      const list = users || [];
+
+      // ---- ব্যাকএন্ড কোয়েরি লজিক (Firebase থেকে আসা users লিস্টের উপর প্রয়োগ করা হয়) ----
+      // Active Refer = referredBy আমার uid এবং referralConfirmed true (মানে এডমিন অ্যাপ্রুভড)।
+      // এরপর activeReferCount অনুযায়ী Descending সর্ট করে LIMIT 15 (SQL এর সমতুল্য:
+      // ORDER BY activeReferCount DESC LIMIT 15) প্রয়োগ করা হয়।
+      const ranked = list
+        .filter(u => u.uid)
+        .map(u => ({
+          user: u,
+          activeReferCount: list.filter(m => m.referredBy === u.uid && m.referralConfirmed).length
+        }))
+        .filter(entry => entry.activeReferCount > 0)
+        .sort((a, b) => b.activeReferCount - a.activeReferCount)
         .slice(0, 15);
 
-      if (top.length === 0) {
+      if (ranked.length === 0) {
         box.style.textAlign = 'center';
         box.style.color = '#888';
         box.textContent = 'এখনো কোনো রেফার নেই';
@@ -2168,14 +2688,117 @@
 
       box.style.textAlign = 'left';
       box.style.color = '';
-      const medals = ['🥇', '🥈', '🥉'];
-      box.innerHTML = top.map((u, i) => {
-        const rankLabel = medals[i] || `${i + 1}.`;
-        const isMe = u.id === currentUserId();
-        return `<div class="leaderboard-row" style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; ${i < top.length - 1 ? 'border-bottom:1px dashed #eee;' : ''}">
-          <span>${rankLabel} ${u.name || 'User'}${isMe ? ' <span style="color:#e52d87; font-size:0.75rem;">(আপনি)</span>' : ''}</span>
-          <span style="font-weight:700; color:#e52d87;">${Number(u.referralCount || 0)} জন</span>
-        </div>`;
+
+      const myId = currentUserId();
+      // টপ ৩ এর জন্য গোল্ড/সিলভার/ব্রোঞ্জ থিম — order দিয়ে ১ম জনকে মাঝখানে (উঁচুতে) বসানো হয়েছে,
+      // যেভাবে সাধারণত পডিয়াম দেখানো হয় (২য়-১ম-৩য়)।
+      const rankMeta = [
+        { crown: '🥇', cls: 'gold',   bg: 'linear-gradient(135deg,#ffd700,#ffa726)', order: 2 },
+        { crown: '🥈', cls: 'silver', bg: 'linear-gradient(135deg,#e2e2e2,#9e9e9e)', order: 1 },
+        { crown: '🥉', cls: 'bronze', bg: 'linear-gradient(135deg,#e6a97c,#b5651d)', order: 3 }
+      ];
+
+      const top3 = ranked.slice(0, 3);
+      const rest = ranked.slice(3);
+
+      // ---- টপ ৩: মেডেল/কালার হাইলাইট সহ পডিয়াম ----
+      const podiumHtml = top3.length ? `<div class="leaderboard-podium">${top3.map((entry, i) => {
+        const u = entry.user;
+        const name = u.name || 'User';
+        const initial = name.trim().charAt(0).toUpperCase() || 'U';
+        const isMe = u.id === myId;
+        const meta = rankMeta[i];
+        return `
+          <div class="podium-item rank-${i + 1}" style="order:${meta.order};">
+            <div class="podium-avatar" style="background:${meta.bg};">
+              <span class="podium-crown ${meta.cls}">${meta.crown}</span>
+              ${initial}
+            </div>
+            <div class="podium-name">${name}${isMe ? ' <span style="color:#e52d87;">(আপনি)</span>' : ''}</div>
+            <span class="podium-badge">${entry.activeReferCount} জন</span>
+          </div>`;
+      }).join('')}</div>` : '';
+
+      // ---- র‍্যাংক ৪-১৫: টেবিল-স্টাইল লিস্ট ----
+      const rowsHtml = rest.map((entry, i) => {
+        const u = entry.user;
+        const rank = i + 4;
+        const name = u.name || 'User';
+        const initial = name.trim().charAt(0).toUpperCase() || 'U';
+        const isMe = u.id === myId;
+        return `
+          <div class="leaderboard-row"${isMe ? ' style="background:#fdeef5; border-radius:12px; padding-left:8px; padding-right:8px;"' : ''}>
+            <span class="lb-rank">${rank}</span>
+            <div class="lb-avatar" style="background:var(--theme-gradient);">${initial}</div>
+            <div class="lb-info">
+              <div class="lb-name">${name}${isMe ? ' <span style="color:#e52d87; font-size:0.72rem;">(আপনি)</span>' : ''}</div>
+              <div class="lb-sub">Active Refer</div>
+            </div>
+            <span class="lb-amount">${entry.activeReferCount} জন</span>
+          </div>`;
+      }).join('');
+
+      box.innerHTML = podiumHtml + rowsHtml;
+    }
+
+    // ---------- TEAM MEMBERS লিস্ট স্ক্রিন ----------
+    // "My Team" এর তিনটা স্ট্যাট কার্ডে (মোট সদস্য / Active / Inactive) ট্যাপ করলে এই ফুল-স্ক্রিন
+    // খোলে এবং সেই অনুযায়ী ফিল্টার করা রেফারড সদস্যদের লিস্ট দেখায়। প্রতিটা রো-তে সদস্যের নিজের
+    // referralConfirmed অনুযায়ীই Active/Inactive পিল দেখানো হয় (কোন কার্ড থেকে খোলা হয়েছে তা না) —
+    // referralConfirmed true মানে সেই সদস্য এডমিন-অ্যাপ্রুভড অন্তত একটা টাস্ক সম্পূর্ণ করেছে (Active),
+    // নাহলে সে এখনো Inactive (দেখুন confirmReferralIfPending ফাংশন)।
+    window._teamListFilter = 'all';
+
+    window.openTeamListScreen = function(filterType) {
+      window._teamListFilter = filterType || 'all';
+      const titleEl = document.getElementById('teamListTitle');
+      if (titleEl) {
+        titleEl.textContent = filterType === 'active' ? 'Active সদস্য' :
+                               filterType === 'inactive' ? 'Inactive সদস্য' : 'মোট সদস্য';
+      }
+      renderTeamListBody();
+      const screen = document.getElementById('teamListScreen');
+      if (screen) screen.classList.add('show');
+    };
+
+    window.closeTeamListScreen = function() {
+      const screen = document.getElementById('teamListScreen');
+      if (screen) screen.classList.remove('show');
+    };
+
+    function renderTeamListBody() {
+      const body = document.getElementById('teamListBody');
+      if (!body) return;
+      const user = findOrCreateUser(currentEmail());
+      let allUsers = [];
+      try { allUsers = getUsersStore(); } catch (e) { allUsers = []; }
+
+      let myTeam = allUsers.filter(u => u.referredBy === user.uid);
+      const filter = window._teamListFilter || 'all';
+      if (filter === 'active') myTeam = myTeam.filter(u => u.referralConfirmed);
+      else if (filter === 'inactive') myTeam = myTeam.filter(u => !u.referralConfirmed);
+
+      if (myTeam.length === 0) {
+        body.innerHTML = '<div class="team-list-empty">এখানে কোনো সদস্য নেই</div>';
+        return;
+      }
+
+      body.innerHTML = myTeam.map(u => {
+        const name = u.name || 'User';
+        const initial = name.trim().charAt(0).toUpperCase() || 'U';
+        const isActive = !!u.referralConfirmed;
+        return `
+          <div class="team-member-row">
+            <div class="team-member-left">
+              <div class="team-member-avatar">${initial}</div>
+              <div class="team-member-info">
+                <h4>${name}</h4>
+                <p>UID: ${u.uid || u.id || ''}</p>
+              </div>
+            </div>
+            <span class="team-status-pill ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
+          </div>
+        `;
       }).join('');
     }
 
@@ -2211,8 +2834,17 @@
       renderBalance();
     }
 
-    // ---------- AD SLOT 24-HOUR COOLDOWN ----------
-    const AD_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+    // ---------- AD SLOT COOLDOWN ----------
+    // আগে এখানে একটা ফিক্সড 24 ঘন্টা (AD_COOLDOWN_MS) হার্ডকোড করা ছিল, যেটা এডমিন প্যানেলের
+    // "রিসেট টাইম (ঘন্টা)" ইনপুট (adminConfig.adSlot{N}CooldownHours) কে সম্পূর্ণ ইগনোর করত।
+    // ফলে এডমিন যত ঘন্টাই সেট করুক (যেমন ১৮), স্লট আসলে রিসেট হতো ২৪ ঘন্টা পরেই।
+    // এখন প্রতিটি স্লটের জন্য এডমিনের সেট করা ঘন্টা থেকেই কুলডাউন হিসাব হচ্ছে।
+    function getSlotCooldownMs(slotNumber) {
+      const hours = adminConfig['adSlot' + slotNumber + 'CooldownHours'];
+      const parsed = Number(hours);
+      const safeHours = Number.isFinite(parsed) && parsed >= 0 ? parsed : 24;
+      return safeHours * 60 * 60 * 1000;
+    }
     let adSlotTimerInterval = null;
 
     function getSlotMax(slotNumber) {
@@ -2252,7 +2884,7 @@
 
       if (current >= slotMax && completedAt) {
         const elapsed = Date.now() - completedAt;
-        if (elapsed >= AD_COOLDOWN_MS) {
+        if (elapsed >= getSlotCooldownMs(slotNumber)) {
           counts[slotKey] = 0;
           counts[completedKey] = null;
           saveAdWatchedCounts(counts);
@@ -2295,7 +2927,7 @@
         if (countEl) countEl.textContent = `${watched}/${slotMax} Watched`;
 
         if (watched >= slotMax && completedAt) {
-          const remaining = AD_COOLDOWN_MS - (Date.now() - completedAt);
+          const remaining = getSlotCooldownMs(slotNumber) - (Date.now() - completedAt);
           if (timerEl) {
             timerEl.style.display = 'block';
             timerEl.textContent = `⏳ পরবর্তী এডের জন্য বাকি: ${formatRemainingTime(remaining)}`;
@@ -2321,6 +2953,24 @@
         return JSON.parse(localStorage.getItem('mahim_task_submissions') || '[]');
       } catch (e) {
         return [];
+      }
+    }
+
+    // ---------- উইথড্র টাস্ক-গেট: কয়টা টাস্ক অ্যাপ্রুভড হয়েছে তা গোনা ----------
+    // একই টাস্কে একাধিকবার সাবমিট/রিজেক্ট/আবার-সাবমিট হতে পারে, তাই taskIndex ভিত্তিক Set দিয়ে
+    // ডিসটিংক্ট কাউন্ট করা হয় — একই টাস্ক দুইবার অ্যাপ্রুভড হলেও একটাই ধরা হবে।
+    function getCompletedTasksCount(uid) {
+      try {
+        const submissions = getTaskSubmissions();
+        const approvedTaskIndexes = new Set();
+        submissions.forEach(function (s) {
+          if (s && s.userId === uid && s.status === 'approved') {
+            approvedTaskIndexes.add(s.taskIndex);
+          }
+        });
+        return approvedTaskIndexes.size;
+      } catch (e) {
+        return 0;
       }
     }
 
@@ -2406,7 +3056,7 @@
         }
         const completedAt = counts[completedKey];
         if (completedAt) {
-          const remaining = AD_COOLDOWN_MS - (Date.now() - completedAt);
+          const remaining = getSlotCooldownMs(slotNumber) - (Date.now() - completedAt);
           showToast(`Ad Slot ${slotNumber} আবার দেখতে বাকি সময়: ${formatRemainingTime(remaining)}`);
         } else {
           showToast(`Ad Slot ${slotNumber} এর সবগুলো এড দেখা হয়ে গেছে`);
@@ -2520,7 +3170,7 @@
         });
 
         localStorage.setItem('mahim_task_submissions', JSON.stringify(submissions));
-        syncSubmissionToFirebase(myApprovedUnpaid);
+        syncSubmissionToFirebase(myApprovedUnpaid).catch(function () {});
 
         // যেকোনো একটা টাস্ক কমপ্লিট/অ্যাপ্রুভড হয়ে গেলে রেফারেল কনফার্ম করে রেফারারকে বোনাস দাও
         confirmReferralIfPending();
@@ -2769,6 +3419,15 @@
       // ইউজার ভাবত জমা হয়েছে অথচ আসলে কিছুই সেভ হয়নি। এখন থেকে সেভ সত্যিই সফল হলেই
       // সফলতার মেসেজ দেখানো হবে, নাহলে স্পষ্ট এরর মেসেজ দেখিয়ে মডাল খোলা থাকবে যাতে
       // ইউজার আবার চেষ্টা করতে পারে।
+      //
+      // ⚠️ আসল বাগ ফিক্স: আগে syncSubmissionToFirebase(newSubmission) কল করার সাথে সাথেই
+      // (Firebase-এর আসল রেসপন্সের জন্য অপেক্ষা না করেই) "জমা দেওয়া হয়েছে" টোস্ট দেখিয়ে মডাল
+      // বন্ধ করে দেওয়া হতো। localStorage-এ সেভ হয়ে যাওয়ায় ইউজার সবসময় "সফল" দেখতো, কিন্তু
+      // Firebase Realtime Database-এ লেখাটা ব্যাকগ্রাউন্ডে সাইলেন্টলি ব্যর্থ হলে (নেটওয়ার্ক সমস্যা,
+      // সিকিউরিটি রুলস পারমিশন ডিনাই ইত্যাদি) এডমিন প্যানেল সেই সাবমিশন কখনোই দেখতে পেত না —
+      // ইউজারের কাছে মনে হতো টাস্ক কমপ্লিট/সাবমিট হয়েছে, আসলে কিছুই এডমিনের কাছে পৌঁছাতো না।
+      // এখন Firebase-এর প্রকৃত রেসপন্সের জন্য অপেক্ষা করা হয়, এবং ব্যর্থ হলে লোকাল কপিও মুছে
+      // স্পষ্ট এরর দেখিয়ে মডাল খোলা রাখা হয় যাতে ইউজার আবার চেষ্টা করতে পারে।
       try {
         const email = currentEmail();
         const user = findOrCreateUser(email);
@@ -2787,10 +3446,22 @@
         };
         submissions.push(newSubmission);
         localStorage.setItem('mahim_task_submissions', JSON.stringify(submissions));
-        syncSubmissionToFirebase(newSubmission);
-        showToast('স্ক্রিনশট জমা দেওয়া হয়েছে, এডমিন রিভিউ করবে');
-        closeScreenshotModal();
-        renderTasks();
+
+        syncSubmissionToFirebase(newSubmission).then(function () {
+          showToast('স্ক্রিনশট জমা দেওয়া হয়েছে, এডমিন রিভিউ করবে');
+          closeScreenshotModal();
+          renderTasks();
+        }).catch(function (err) {
+          console.warn('Firebase-এ স্ক্রিনশট সাবমিশন পাঠানো যায়নি', err);
+          // লোকাল কপি রেখে দিলে ইউজারের ডিভাইসে "পেন্ডিং" দেখাবে অথচ এডমিন কখনো পাবে না —
+          // তাই সেভ রোলব্যাক করা হয়, যাতে ইউজার বুঝে আবার চেষ্টা করতে হবে।
+          try {
+            const rolledBack = getTaskSubmissions().filter(function (s) { return s.id !== newSubmission.id; });
+            localStorage.setItem('mahim_task_submissions', JSON.stringify(rolledBack));
+          } catch (e2) { /* ignore rollback failure */ }
+          showToast('দুঃখিত, ইন্টারনেট/সার্ভার সমস্যার কারণে স্ক্রিনশট এডমিনের কাছে পাঠানো যায়নি। আবার চেষ্টা করুন।');
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'জমা দিন'; }
+        });
       } catch (e) {
         console.warn('Could not save screenshot submission', e);
         const msg = (e && e.name === 'QuotaExceededError')
@@ -2935,9 +3606,10 @@
     }
 
     function hideAuthScreen() {
-      if (authScreen) {
-        authScreen.classList.add('hidden-auth');
-      }
+      // sign-in ফ্লো শেষ হওয়া মাত্র স্ক্রিন সরিয়ে দেওয়া হতো না — এখন এটা শুধু "auth রেডি"
+      // ফ্ল্যাগ সেট করে, আসল লোডিং স্ক্রিন সরে তখনই যখন ডেটা-ও লোড হয়ে গেছে
+      // (দেখুন markDataLoaded/tryCloseLoadingScreen)।
+      markDataLoaded('auth');
     }
 
     // Event listeners for sign in
@@ -3010,6 +3682,19 @@
       if (overlay) overlay.classList.remove('show');
     };
 
+    window.openTaskGateModal = function(required, current) {
+      const textEl = document.getElementById('taskGateModalText');
+      if (textEl) {
+        textEl.textContent = `টাকা তুলতে আপনার অন্তত ${required}টি টাস্ক সম্পূর্ণ (অ্যাপ্রুভড) থাকতে হবে! আপনার বর্তমানে ${current}টি টাস্ক সম্পূর্ণ হয়েছে।`;
+      }
+      const overlay = document.getElementById('taskGateModalOverlay');
+      if (overlay) overlay.classList.add('show');
+    };
+    window.closeTaskGateModal = function() {
+      const overlay = document.getElementById('taskGateModalOverlay');
+      if (overlay) overlay.classList.remove('show');
+    };
+
     window.handleWithdraw = function(event) {
       event.preventDefault();
 
@@ -3019,6 +3704,18 @@
       if (currentRefers < requiredRefers) {
         openReferGateModal(requiredRefers, currentRefers);
         return;
+      }
+
+      // রেফারের পাশাপাশি এডমিন চাইলে টাস্ক-কমপ্লিশন শর্তও চালু করতে পারেন (যেমন: উইথড্র করতে
+      // অন্তত ২টা টাস্ক অ্যাপ্রুভড থাকতে হবে)। minTasksRequired 0/খালি থাকলে এই শর্ত স্কিপ হয়।
+      const requiredTasks = Number(adminConfig.minTasksRequired) || 0;
+      if (requiredTasks > 0) {
+        const currentUid = currentUserId();
+        const completedTasks = getCompletedTasksCount(currentUid);
+        if (completedTasks < requiredTasks) {
+          openTaskGateModal(requiredTasks, completedTasks);
+          return;
+        }
       }
 
       const amount = parseFloat(document.getElementById('withdrawAmount').value);
@@ -3043,12 +3740,20 @@
         const email = currentEmail();
         const user = findOrCreateUser(email);
         const existing = JSON.parse(localStorage.getItem('mahim_withdraws') || '[]');
+        // চার্জ ও "আপনি পাবেন" এর হিসাব এখানেই (সাবমিট করার মুহূর্তের ফি হারে) সেভ করা হচ্ছে,
+        // যাতে এডমিন পরে ফি% বদলে দিলেও পুরোনো রিকোয়েস্টের হিসাব ভুল না দেখায়।
+        const feePercentAtSubmit = (adminConfig.withdrawFeePercent !== undefined && adminConfig.withdrawFeePercent !== null) ? adminConfig.withdrawFeePercent : 0;
+        const feeAmount = (amount * feePercentAtSubmit) / 100;
+        const receiveAmount = amount - feeAmount;
         const newReq = {
           id: 'w' + Date.now(),
           userId: currentUserId(),
           userName: user.name || email,
           phone: number,
           amount: amount,
+          feePercent: feePercentAtSubmit,
+          feeAmount: feeAmount,
+          receiveAmount: receiveAmount,
           method: method,
           number: number,
           status: 'pending',
